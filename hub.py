@@ -28,7 +28,6 @@ tasks = [{'c_mAh': 0, 'q_perc': 0, 'wpt': 0} for _ in range(N_TASKS)]
 
 #List of tasks for hub
 N_TASKS_DEVICES = 2 
-#tasksDevices = [[{'c_mAh': 0, 'q_perc': 0} for _ in range(N_TASKS_DEVICES)] for _ in range(N_DEVICES)]
 tasksDevices = [
     {
         'distance': 0,
@@ -278,12 +277,36 @@ def compute_quality(S):
             qavg = qavg + (tasks[S[i]]['q_perc']) 
     return  qavg
 
+def scheduling_devices(S):
+    Sdev = [[{'t': 0, 'q':0} for _ in range(K)] for _ in range(N_DEVICES)]
+    Qdev = [0.0] * N_DEVICES
+    for j in range(N_DEVICES):
+        print("Schedule of end device: %d" % j)
+        for i in range(K):
+            if (j <= S[i]):
+                Sdev[j][i]['t'] = 1
+                Sdev[j][i]['q'] = tasksDevices[j]['tasks'][1]['q_perc'] 
+            else:
+                Sdev[j][i]['t'] = 0
+                Sdev[j][i]['q'] = tasksDevices[j]['tasks'][0]['q_perc']
+            Qdev[j] = Qdev[j] + Sdev[j][i]['q']
+            if (i<K-1):
+                print("%d, " % Sdev[j][i]['t'], end='')
+            else:
+                print("%d" % Sdev[j][i]['t'], end='')
+        print("-- quality = %f " % (Qdev[j]/K))
+
+    print("\n#----------------------------------------------\n")
+
 def scheduling():
     Shub,Qhub=ScheduleClassic(K,B_INIT, BMIN,BMAX, E_s_mAh, tasks)
     q=compute_quality(Shub)
     print("Scheduling, Quality for hub")
     print(Shub,end='')
     print(" , %d - Avg(Q): %f" % (Qhub,q))
+
+    print("\n#----------------------------------------------\n")
+    scheduling_devices(Shub)
     return(Shub,Qhub)
 
 #def compute_scheduling_devices(S,Q):
